@@ -1,3 +1,4 @@
+'use strict'
 module.exports.filter = (record) => {
   return record.kinesis
 }
