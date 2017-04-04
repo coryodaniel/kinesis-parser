@@ -3,13 +3,17 @@ module.exports.filter = (record) => {
 }
 
 module.exports.decode = (record, transform) => {
-  const encodedPayload = record.kinesis.data
-  const buffer = new Buffer(encodedPayload, 'base64').toString('utf8')
+  try {
+    const encodedPayload = record.kinesis.data
+    const buffer = new Buffer(encodedPayload, 'base64').toString('utf8')
 
-  if (transform) {
-    return transform(buffer)
-  } else {
-    return buffer
+    if (transform) {
+      return transform(buffer)
+    } else {
+      return buffer
+    }
+  } catch (err) {
+    return null
   }
 }
 
@@ -28,7 +32,7 @@ module.exports.parse = (records, transform) => {
     const isKinesisRecord = module.exports.filter(record)
     if(isKinesisRecord) {
       const decoded = module.exports.decode(record, transform)
-      results.push(decoded)
+      if(decoded){ results.push(decoded) }
     }
   });
 

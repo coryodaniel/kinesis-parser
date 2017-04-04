@@ -1,12 +1,17 @@
 const Kinesis = require('./index')
 
+
+
+const helloWorldTextBuffer = new Buffer("Hello World").toString('base64')
+const helloWorldJSONBuffer = new Buffer(JSON.stringify({"msg": "Hello World"})).toString('base64')
+const jsonRecords = [{ "kinesis": { "data": helloWorldJSONBuffer } }]
 const textRecords = [
-  {"foo": "bar"},
-  {
-    "kinesis": {
-      "data": new Buffer("Hello World").toString('base64')
-    }
-  }
+  { "foo": "bar" },
+  { "kinesis": { "data": helloWorldTextBuffer } }
+]
+const mixedRecords = [
+  { "kinesis": { "data": helloWorldTextBuffer } },
+  { "kinesis": { "data": helloWorldJSONBuffer } }
 ]
 
 describe('#filter', () => {
@@ -22,14 +27,6 @@ describe('#decode', () => {
     expect(results[0]).toEqual("Hello World")
   })
 })
-
-const jsonRecords = [
-  {
-    "kinesis": {
-      "data": new Buffer(JSON.stringify({"msg": "Hello World"})).toString('base64'),
-    }
-  }
-]
 
 describe('#decodeJSON', () => {
   it('Decodes base64 messages and parses JSON', () => {
@@ -48,6 +45,12 @@ describe('#parse', () => {
 
 describe('#parseJSON', () => {
   it('Parses JSON and filters records in one pass', () => {
+    const results = Kinesis.parseJSON(jsonRecords)
+    expect(results.length).toEqual(1)
+    expect(results[0]).toEqual({"msg": "Hello World"})
+  })
+
+  it("Filters out records that can't be parsed to JSON", () => {
     const results = Kinesis.parseJSON(jsonRecords)
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual({"msg": "Hello World"})
