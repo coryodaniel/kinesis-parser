@@ -1,4 +1,4 @@
-# Kinesis Reader
+# Kinesis Parser
 
 Small library for reading Kinesis `event.Records` in Lambda.
 
@@ -12,7 +12,7 @@ npm install kinesis-parser --save
 Parsing plain text messages
 
 ```js
-const KinesisParser = require('kinesis-reader')
+const KinesisParser = require('kinesis-parser')
 
 exports.handler = (event, context, callback) => {
   const messages = KinesisParser.parse(event.Records)
@@ -24,7 +24,7 @@ exports.handler = (event, context, callback) => {
 Parsing JSON messages
 
 ```js
-const KinesisParser = require('kinesis-reader')
+const KinesisParser = require('kinesis-parser')
 
 exports.handler = (event, context, callback) => {
   const messages = KinesisParser.parseJSON(event.Records)
