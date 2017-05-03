@@ -1,43 +1,59 @@
 'use strict'
-module.exports.filter = (record) => {
+
+let parser = {}
+parser.filter = (record) => {
   return record.kinesis
 }
 
-module.exports.decode = (record, transform) => {
+parser.decode = (kinesis) => {
   try {
-    const encodedPayload = record.kinesis.data
-    const buffer = new Buffer(encodedPayload, 'base64').toString('utf8')
-
-    if (transform) {
-      return transform(buffer)
-    } else {
-      return buffer
-    }
+    const decodedData = new Buffer(kinesis.data, 'base64').toString('utf8')
+    const decodedKinesis = Object.assign({}, kinesis, {"data": decodedData})
+    return decodedKinesis
   } catch (err) {
     return null
   }
 }
 
-module.exports.decodeJSON = (record) => {
-  return module.exports.decode(record, JSON.parse)
-}
-
-module.exports.parseJSON = (records) => {
-  return module.exports.parse(records, JSON.parse)
-}
-
-module.exports.parse = (records, transform) => {
+parser.filterMap = (collection, filter, map) => {
   let results = []
 
-  records.forEach(function(record) {
-    const isKinesisRecord = module.exports.filter(record)
-    if(isKinesisRecord) {
-      const decoded = module.exports.decode(record, transform)
-      if(decoded){ results.push(decoded) }
+  collection.forEach(function(item) {
+    const filtered = filter(item)
+    if(filtered) {
+      const mapped = map(item)
+      results.push(mapped)
     }
-  });
+  })
 
   return results
 }
 
+parser.parse = (records) => {
+  return parser.filterMap(records, parser.filter, (record) => {
+    return parser.decode(record.kinesis)
+  })
+}
+
+parser.parseJSON = (records) => {
+  let results = [];
+  const parsedRecords = parser.parse(records)
+
+  parsedRecords.forEach(function(kinesis) {
+    try {
+      const data = JSON.parse(kinesis.data)
+      const parsedKinesis = Object.assign({}, kinesis, {"data": data})
+      results.push(parsedKinesis)
+    } catch (err) {}
+  })
+  
+  return results
+}
+
+module.exports = {
+  decode: parser.decode,
+  filter: parser.filter,
+  parse: parser.parse,
+  parseJSON: parser.parseJSON
+}
 exports = module.exports

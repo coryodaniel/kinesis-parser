@@ -16,7 +16,8 @@ const KinesisParser = require('kinesis-parser')
 
 exports.handler = (event, context, callback) => {
   const messages = KinesisParser.parse(event.Records)
-  // messages => ["Hello World"]
+  // filters non-kinesis records and base64 decodes kinesis.data in one pass
+  // messages => [{data": "Hello World"}]
 }
 ```
 
@@ -28,6 +29,8 @@ const KinesisParser = require('kinesis-parser')
 
 exports.handler = (event, context, callback) => {
   const messages = KinesisParser.parseJSON(event.Records)
-  // messages => [{...},{...},...]
+  // filters non-kinesis records and base64 decodes kinesis.data in one pass
+  // parses JSON and discards records that do not parse
+  // messages => [{data": {"msg":"Hello World"}},{...},...]
 }
 ```
